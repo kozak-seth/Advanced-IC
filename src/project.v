@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2024 Your Name
- * SPDX-License-Identifier: Apache-2.0
- */
-
-`default_nettype none
-
-module tt_um_example (
+module tt_um_kozak_counter (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -16,12 +9,26 @@ module tt_um_example (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  // Internal register: 8-bit counter
+  reg [7:0] count;
 
-  // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+
+  // Sequential logic: counter increments on every clock
+  always @(posedge clk) begin
+    if (!rst_n)         // Active-low reset
+      count <= 8'b0;
+    else
+      count <= count + 2;
+  end
+
+  // Assign counter to output
+  assign uo_out = count;
+
+  // Tie off unused IOs
+  assign uio_out = 0;
+  assign uio_oe = 0;
+
+  // Prevent warnings for unused signals
+  wire _unused = &{ena, ui_in, uio_in, 1'b0};
 
 endmodule
